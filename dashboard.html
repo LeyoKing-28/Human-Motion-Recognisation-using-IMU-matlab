@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IMU Activity & Biometric Cardiovascular Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070b14;
+      --card-bg: rgba(18, 26, 43, 0.72);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.35);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.3);
+      --heart: #ef4444;
+      --heart-glow: rgba(239, 68, 68, 0.4);
+      --text: #f3f4f6;
+      --text-muted: #94a3b8;
+      --warning: #f59e0b;
+      --purple: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(239, 68, 68, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 60%);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 22px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      backdrop-filter: blur(16px);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #ef4444, #8b5cf6);
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 16px var(--heart-glow);
+    }
+
+    h1 {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .profile-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 10px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .profile-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      transition: all 0.3s ease;
+    }
+
+    .status-badge.connected {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+    }
+
+    .status-badge.connected .status-dot {
+      background-color: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 22px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Hero Activity Card */
+    .hero-activity {
+      text-align: center;
+      padding: 22px 18px;
+      background: radial-gradient(circle at center, rgba(59, 130, 246, 0.14) 0%, transparent 70%);
+      border-radius: 16px;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .activity-icon {
+      font-size: 56px;
+      filter: drop-shadow(0 6px 16px var(--primary-glow));
+    }
+
+    .activity-name {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .confidence-meter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    .confidence-val {
+      font-weight: 700;
+      color: #60a5fa;
+    }
+
+    /* Biometric Cardiac Monitor Card */
+    .hero-cardiac {
+      text-align: center;
+      padding: 22px 18px;
+      background: radial-gradient(circle at center, rgba(239, 68, 68, 0.16) 0%, transparent 70%);
+      border-radius: 16px;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+    }
+
+    .heart-icon {
+      font-size: 52px;
+      display: inline-block;
+      animation: heartbeat 1s infinite ease-in-out;
+      transform-origin: center;
+      filter: drop-shadow(0 6px 20px var(--heart-glow));
+    }
+
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      14% { transform: scale(1.18); }
+      28% { transform: scale(1); }
+      42% { transform: scale(1.14); }
+      70% { transform: scale(1); }
+    }
+
+    .bpm-display {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .bpm-value {
+      font-size: 46px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -1px;
+      color: #fca5a5;
+    }
+
+    .bpm-unit {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .zone-badge {
+      padding: 5px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+      transition: all 0.3s ease;
+    }
+
+    /* Cardiac Metrics Grid */
+    .cardiac-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .cardiac-stat-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .cardiac-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .cardiac-stat-val {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f3f4f6;
+    }
+
+    /* Probability Bars */
+    .probabilities-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .probabilities-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    .probabilities-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    .prob-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .prob-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .prob-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .prob-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      border-radius: 9999px;
+      transition: width 0.2s ease-out;
+    }
+
+    .prob-fill.active {
+      background: linear-gradient(90deg, #10b981, #3b82f6);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    }
+
+    /* Live Waveform Graphs */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 130px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 8px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .telemetry-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .telemetry-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .telemetry-val {
+      font-weight: 600;
+    }
+
+    .val-x { color: #f87171; }
+    .val-y { color: #4ade80; }
+    .val-z { color: #60a5fa; }
+
+    /* Phone Setup Instruction Card */
+    .guide-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed rgba(59, 130, 246, 0.3);
+      border-radius: 16px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .guide-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #93c5fd;
+    }
+
+    .guide-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .url-badge {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: #bfdbfe;
+      font-weight: 600;
+      white-space: nowrap;
+      user-select: all;
+    }
+
+    /* Modal for User Profile */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .form-input, .form-select {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--primary);
+    }
+
+    .save-profile-btn {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-left">
+      <div class="logo-badge">❤️</div>
+      <div>
+        <h1>AI Human Activity & Cardiac Monitor</h1>
+        <div class="subtitle">1D-CNN Motion Classification & Bio-Dynamic Heart Rate Engine</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="profile-btn" id="openProfileBtn">
+        <span>👤 User Profile</span>
+        <span style="font-size: 11px; opacity: 0.7;" id="profileSummary">(21y, 70kg, 175cm)</span>
+      </button>
+      <div class="status-badge" id="statusBadge">
+        <div class="status-dot"></div>
+        <span id="statusText">Waiting for Phone Stream</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Phone Stream URL Banner -->
+  <div class="guide-card">
+    <div class="guide-text">
+      <div class="guide-title">📱 Stream Phone IMU (Sensor Logger / HyperIMU)</div>
+      <div class="guide-desc">Enable <b>Accelerometer</b> & <b>Gyroscope</b> at 50Hz, then set <b>HTTP Push URL</b> to:</div>
+    </div>
+    <div class="url-badge" id="serverUrl">http://172.16.253.48:8000/</div>
+  </div>
+
+  <!-- Top Hero Grid: Activity Recognition + Cardiac Monitor -->
+  <div class="dashboard-grid">
+
+    <!-- Card 1: 1D-CNN Activity Classifier -->
+    <div class="card">
+      <div class="card-title">
+        <span>Detected Motion (1D-CNN)</span>
+        <span style="font-size: 11px; color: var(--text-muted);" id="sampleCounter">Buffer: 0/128</span>
+      </div>
+
+      <div class="hero-activity">
+        <div class="activity-icon" id="activityIcon">🧍</div>
+        <div class="activity-name" id="activityName">Standing</div>
+        <div class="confidence-meter">
+          <span>Confidence:</span>
+          <span class="confidence-val" id="confidenceVal">0.0%</span>
+        </div>
+      </div>
+
+      <div class="card-title" style="margin-top: 4px;">
+        <span>Classification Probabilities</span>
+      </div>
+
+      <div class="probabilities-list" id="probList">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+
+    <!-- Card 2: Bio-Dynamic Heart Rate & Metabolic Monitor -->
+    <div class="card">
+      <div class="card-title">
+        <span>Predicted Heart Rate & Strain</span>
+        <span style="font-size: 11px; color: #f87171;" id="hrStatusLabel">Bio-Dynamic Model</span>
+      </div>
+
+      <div class="hero-cardiac">
+        <div class="heart-icon" id="heartIcon">❤️</div>
+        <div class="bpm-display">
+          <span class="bpm-value" id="bpmVal">68</span>
+          <span class="bpm-unit">BPM</span>
+        </div>
+        <div class="zone-badge" id="zoneBadge">Resting Zone (< 50%)</div>
+      </div>
+
+      <div class="card-title" style="margin-top: 4px;">
+        <span>Physiological & Energy Telemetry</span>
+      </div>
+
+      <div class="cardiac-stats-grid">
+        <div class="cardiac-stat-item">
+          <span class="cardiac-stat-label">Energy Burn</span>
+          <span class="cardiac-stat-val" id="valKcal">1.2 kcal/m</span>
+        </div>
+        <div class="cardiac-stat-item">
+          <span class="cardiac-stat-label">Metabolic (MET)</span>
+          <span class="cardiac-stat-val" id="valMet">1.5 METs</span>
+        </div>
+        <div class="cardiac-stat-item">
+          <span class="cardiac-stat-label">Max HR (Tanaka)</span>
+          <span class="cardiac-stat-val" id="valMaxHr">193 BPM</span>
+        </div>
+        <div class="cardiac-stat-item">
+          <span class="cardiac-stat-label">Total Calories</span>
+          <span class="cardiac-stat-val" id="valTotalKcal">0.0 kcal</span>
+        </div>
+        <div class="cardiac-stat-item">
+          <span class="cardiac-stat-label">Body Mass (BMI)</span>
+          <span class="cardiac-stat-val" id="valBmi">22.9 BMI</span>
+        </div>
+        <div class="cardiac-stat-item">
+          <span class="cardiac-stat-label">Motion Intensity</span>
+          <span class="cardiac-stat-val" id="valMotionIntensity">0.02 g</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Grid: Sensor Waveforms (Accelerometer & Gyroscope) -->
+  <div class="dashboard-grid">
+
+    <!-- Card 3: Accelerometer Oscilloscope -->
+    <div class="card">
+      <div class="card-title">
+        <span>Accelerometer (g)</span>
+        <span style="font-size: 11px; color: #94a3b8;">X (Red) | Y (Green) | Z (Blue)</span>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="accelCanvas"></canvas>
+      </div>
+
+      <div class="telemetry-grid">
+        <div class="telemetry-item">
+          <span class="telemetry-label">Accel X</span>
+          <span class="telemetry-val val-x" id="valAx">+0.00 g</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">Accel Y</span>
+          <span class="telemetry-val val-y" id="valAy">+0.00 g</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">Accel Z</span>
+          <span class="telemetry-val val-z" id="valAz">+0.00 g</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Gyroscope Oscilloscope -->
+    <div class="card">
+      <div class="card-title">
+        <span>Gyroscope (°/s)</span>
+        <span style="font-size: 11px; color: #94a3b8;">Pitch, Roll, Yaw Angular Velocity</span>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="gyroCanvas"></canvas>
+      </div>
+
+      <div class="telemetry-grid">
+        <div class="telemetry-item">
+          <span class="telemetry-label">Gyro X (Pitch)</span>
+          <span class="telemetry-val val-x" id="valGx">+0.0 °/s</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">Gyro Y (Roll)</span>
+          <span class="telemetry-val val-y" id="valGy">+0.0 °/s</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="telemetry-label">Gyro Z (Yaw)</span>
+          <span class="telemetry-val val-z" id="valGz">+0.0 °/s</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- User Profile Modal -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal-card">
+      <div class="modal-title">
+        <span>⚙️ User Physiological Profile</span>
+        <button class="close-btn" id="closeProfileBtn">&times;</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+        Personal anthropometric parameters used by the Tanaka, Karvonen, and Keytel clinical models to compute cardiovascular strain.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">Age (years)</label>
+        <input type="number" id="inputAge" class="form-input" min="10" max="100" value="21">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Weight (kg)</label>
+          <input type="number" id="inputWeight" class="form-input" min="30" max="250" value="70">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Height (cm)</label>
+          <input type="number" id="inputHeight" class="form-input" min="100" max="250" value="175">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          <select id="inputGender" class="form-select">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Resting HR (BPM)</label>
+          <input type="number" id="inputRestingHr" class="form-input" min="40" max="110" value="68">
+        </div>
+      </div>
+
+      <button class="save-profile-btn" id="saveProfileBtn">Update Physiological Profile</button>
+    </div>
+  </div>
+
+  <script>
+    // Activity Icon Mapping
+    const ACTIVITY_ICONS = {
+      "Walking": "🚶",
+      "Running": "🏃",
+      "Shuffling": "🔀",
+      "Stairs (ascending)": "🪜",
+      "Stairs (descending)": "📉",
+      "Standing": "🧍",
+      "Sitting": "🪑",
+      "Lying": "🛌",
+      "Cycling (sit)": "🚴",
+      "Cycling (stand)": "🚴‍♂️",
+      "Cycling (sit, inactive)": "🚲",
+      "Cycling (stand, inactive)": "🚲"
+    };
+
+    // Heart Rate Training Zone Styling
+    const ZONE_STYLES = {
+      "Resting": { bg: "rgba(59, 130, 246, 0.2)", border: "rgba(59, 130, 246, 0.4)", text: "#93c5fd" },
+      "Fat Burn": { bg: "rgba(16, 185, 129, 0.2)", border: "rgba(16, 185, 129, 0.4)", text: "#6ee7b7" },
+      "Cardio": { bg: "rgba(245, 158, 11, 0.2)", border: "rgba(245, 158, 11, 0.4)", text: "#fde68a" },
+      "Peak": { bg: "rgba(239, 68, 68, 0.25)", border: "rgba(239, 68, 68, 0.5)", text: "#fca5a5" }
+    };
+
+    // Canvas Oscilloscope Buffers
+    const MAX_POINTS = 100;
+    const accelHistory = { x: new Array(MAX_POINTS).fill(0), y: new Array(MAX_POINTS).fill(0), z: new Array(MAX_POINTS).fill(0) };
+    const gyroHistory  = { x: new Array(MAX_POINTS).fill(0), y: new Array(MAX_POINTS).fill(0), z: new Array(MAX_POINTS).fill(0) };
+
+    const accelCanvas = document.getElementById('accelCanvas');
+    const gyroCanvas = document.getElementById('gyroCanvas');
+    const accelCtx = accelCanvas.getContext('2d');
+    const gyroCtx = gyroCanvas.getContext('2d');
+
+    function resizeCanvases() {
+      accelCanvas.width = accelCanvas.parentElement.clientWidth - 16;
+      accelCanvas.height = accelCanvas.parentElement.clientHeight - 16;
+      gyroCanvas.width = gyroCanvas.parentElement.clientWidth - 16;
+      gyroCanvas.height = gyroCanvas.parentElement.clientHeight - 16;
+    }
+    window.addEventListener('resize', resizeCanvases);
+    resizeCanvases();
+
+    function drawGraph(ctx, canvas, history, minVal, maxVal) {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Center line
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2);
+      ctx.stroke();
+
+      const colors = { x: '#f87171', y: '#4ade80', z: '#60a5fa' };
+
+      ['x', 'y', 'z'].forEach(axis => {
+        ctx.strokeStyle = colors[axis];
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const data = history[axis];
+        for (let i = 0; i < data.length; i++) {
+          const px = (i / (MAX_POINTS - 1)) * w;
+          const normalized = (data[i] - minVal) / (maxVal - minVal);
+          const py = h - (normalized * h);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      });
+    }
+
+    document.getElementById('serverUrl').innerText = `${window.location.origin}/`;
+
+    // Modal Control
+    const modal = document.getElementById('profileModal');
+    document.getElementById('openProfileBtn').onclick = () => modal.classList.add('active');
+    document.getElementById('closeProfileBtn').onclick = () => modal.classList.remove('active');
+    modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('active'); };
+
+    // Save Profile
+    document.getElementById('saveProfileBtn').onclick = async () => {
+      const payload = {
+        age: parseInt(document.getElementById('inputAge').value) || 21,
+        weight: parseFloat(document.getElementById('inputWeight').value) || 70,
+        height: parseFloat(document.getElementById('inputHeight').value) || 175,
+        gender: document.getElementById('inputGender').value,
+        resting_hr: parseInt(document.getElementById('inputRestingHr').value) || 68
+      };
+
+      try {
+        const res = await fetch('/api/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          modal.classList.remove('active');
+          document.getElementById('profileSummary').innerText = `(${payload.age}y, ${payload.weight}kg, ${payload.height}cm)`;
+        }
+      } catch (e) {
+        console.error("Failed to update profile", e);
+      }
+    };
+
+    // Telemetry Poller (every 100ms)
+    let lastActiveTime = 0;
+
+    async function pollLiveTelemetry() {
+      try {
+        const res = await fetch('/api/telemetry');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const now = Date.now();
+        if (data.isStreaming) {
+          lastActiveTime = now;
+          document.getElementById('statusBadge').classList.add('connected');
+          document.getElementById('statusText').innerText = 'Live Stream Active (50Hz)';
+        } else if (now - lastActiveTime > 3000) {
+          document.getElementById('statusBadge').classList.remove('connected');
+          document.getElementById('statusText').innerText = 'Waiting for Phone Stream';
+        }
+
+        // Update Activity
+        if (data.activity) {
+          document.getElementById('activityName').innerText = data.activity;
+          document.getElementById('activityIcon').innerText = ACTIVITY_ICONS[data.activity] || '⚡';
+          document.getElementById('confidenceVal').innerText = `${data.confidence.toFixed(1)}%`;
+        }
+
+        document.getElementById('sampleCounter').innerText = `Buffer: ${data.bufferSize}/128`;
+
+        // Update Cardiac Telemetry
+        if (data.cardiac) {
+          const bpm = Math.round(data.cardiac.bpm);
+          document.getElementById('bpmVal').innerText = bpm;
+
+          // Dynamically adjust heart beating animation rate to match exact BPM!
+          const beatDuration = (60 / Math.max(45, bpm)).toFixed(2);
+          document.getElementById('heartIcon').style.animationDuration = `${beatDuration}s`;
+
+          // Update Zone badge
+          const zoneName = data.cardiac.zone;
+          const zoneBadge = document.getElementById('zoneBadge');
+          zoneBadge.innerText = `${zoneName} Zone (${data.cardiac.percentMaxHr}%)`;
+
+          const style = ZONE_STYLES[zoneName] || ZONE_STYLES["Resting"];
+          zoneBadge.style.backgroundColor = style.bg;
+          zoneBadge.style.borderColor = style.border;
+          zoneBadge.style.color = style.text;
+
+          // Stats
+          document.getElementById('valKcal').innerText = `${data.cardiac.kcalPerMin.toFixed(1)} kcal/m`;
+          document.getElementById('valMet').innerText = `${data.cardiac.met.toFixed(1)} METs`;
+          document.getElementById('valMaxHr').innerText = `${data.cardiac.maxHr} BPM`;
+          document.getElementById('valTotalKcal').innerText = `${data.cardiac.totalKcal.toFixed(1)} kcal`;
+          document.getElementById('valBmi').innerText = `${data.cardiac.bmi.toFixed(1)} BMI`;
+          document.getElementById('valMotionIntensity').innerText = `${data.cardiac.motionIntensity.toFixed(2)} g`;
+        }
+
+        // Update Probabilities
+        if (data.probabilities) {
+          const container = document.getElementById('probList');
+          container.innerHTML = '';
+          data.probabilities.forEach(p => {
+            const isTop = p.name === data.activity;
+            const row = document.createElement('div');
+            row.className = 'prob-row';
+            row.innerHTML = `
+              <div class="prob-header">
+                <span style="${isTop ? 'font-weight: 700; color: #93c5fd;' : 'color: var(--text-muted);'}">${p.name}</span>
+                <span style="font-family: 'JetBrains Mono';">${p.prob.toFixed(1)}%</span>
+              </div>
+              <div class="prob-track">
+                <div class="prob-fill ${isTop ? 'active' : ''}" style="width: ${Math.max(2, p.prob)}%;"></div>
+              </div>
+            `;
+            container.appendChild(row);
+          });
+        }
+
+        // Update Sensor Readouts
+        document.getElementById('valAx').innerText = `${data.sensors.ax >= 0 ? '+' : ''}${data.sensors.ax.toFixed(2)} g`;
+        document.getElementById('valAy').innerText = `${data.sensors.ay >= 0 ? '+' : ''}${data.sensors.ay.toFixed(2)} g`;
+        document.getElementById('valAz').innerText = `${data.sensors.az >= 0 ? '+' : ''}${data.sensors.az.toFixed(2)} g`;
+
+        document.getElementById('valGx').innerText = `${data.sensors.gx >= 0 ? '+' : ''}${data.sensors.gx.toFixed(1)} °/s`;
+        document.getElementById('valGy').innerText = `${data.sensors.gy >= 0 ? '+' : ''}${data.sensors.gy.toFixed(1)} °/s`;
+        document.getElementById('valGz').innerText = `${data.sensors.gz >= 0 ? '+' : ''}${data.sensors.gz.toFixed(1)} °/s`;
+
+        // Push to Canvas history
+        accelHistory.x.push(data.sensors.ax); accelHistory.x.shift();
+        accelHistory.y.push(data.sensors.ay); accelHistory.y.shift();
+        accelHistory.z.push(data.sensors.az); accelHistory.z.shift();
+
+        gyroHistory.x.push(data.sensors.gx); gyroHistory.x.shift();
+        gyroHistory.y.push(data.sensors.gy); gyroHistory.y.shift();
+        gyroHistory.z.push(data.sensors.gz); gyroHistory.z.shift();
+
+        // Render graphs
+        drawGraph(accelCtx, accelCanvas, accelHistory, -3.0, 3.0);
+        drawGraph(gyroCtx, gyroCanvas, gyroHistory, -200, 200);
+
+      } catch (err) {
+        // quiet retry
+      }
+    }
+
+    setInterval(pollLiveTelemetry, 100);
+  </script>
+</body>
+</html>
